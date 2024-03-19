@@ -9,13 +9,18 @@ tol_wall = 0.2;
 
 outer_width = .69*25.4-tol_tight*2;//   + .5;
 outer_lip = .8;//.75;
-outer_lip_height = 2;//2;
-outer_height = 21;
+outer_lip_height = 1.5;//2;
+outer_height = 21+1.54+2.2;
 
-switch_height = 15;
+switch_height = 15+1.54;
 
 button_height = 7+tol_tight;
 button_width = 7+tol_tight;
+
+// lip for mounting lens
+lens_width = 2.54;
+lip_depth = lens_width+.5;
+lip_size = .55;
 
 inner_width = outer_width - wall_thickness*2 - tol_wall*2; //14.526 //15.026
 
@@ -60,19 +65,17 @@ module inner_switch() {
 						cube([inner_width - button_wall_thickness*2, inner_width - button_wall_thickness*2, switch_height]);
 				}
 				translate([0, inner_width / 2 - button_wall_thickness/2, 0]) 
-					cube([inner_width, button_wall_thickness, switch_height - 1]);
+					cube([inner_width, button_wall_thickness, switch_height - lip_depth]);
+
 			}
 			translate([inner_width/2 - extrusion_width/2, inner_width/2 - extrusion_depth/2, 0]) 
 				cube([extrusion_width, extrusion_depth, extrusion_height]);
 			}
-			
-			// lip for mounting lens
-			lip_depth = 1.5;
-			lip_size = .55;
-			translate([inner_width/2, inner_width/2, 0]) translate([0, 0, switch_height/2]) 
+
+			translate([inner_width/2, inner_width/2, switch_height/2])
 			difference() {
-				cube([inner_width-button_wall_thickness*2, inner_width-button_wall_thickness*2, switch_height-lip_depth], center=true);
-				cube([inner_width-button_wall_thickness*2-lip_size*2, inner_width-button_wall_thickness*2-lip_size*2, switch_height-lip_depth], center=true);
+				cube([inner_width-button_wall_thickness*2, inner_width-button_wall_thickness*2, switch_height-lip_depth*2], center=true);
+				cube([inner_width-button_wall_thickness*2-lip_size*2, inner_width-button_wall_thickness*2-lip_size*2, switch_height-lip_depth*2], center=true);
 			}
 		}
 		led_holes();
