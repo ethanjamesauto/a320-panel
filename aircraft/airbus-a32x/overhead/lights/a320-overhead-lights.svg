@@ -19335,11 +19335,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142135"
-     inkscape:cx="749.88677"
-     inkscape:cy="382.19123"
+     inkscape:zoom="0.99999996"
+     inkscape:cx="552.50002"
+     inkscape:cy="263.50001"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="layer3"
      inkscape:document-rotation="0"
      showgrid="false"
      inkscape:window-width="2194"
@@ -19672,12 +19672,19 @@
        height="14.366"
        x="-320.8754"
        y="859.85706" />
+    <circle
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:0;stroke:#ff0000;stroke-width:0.25317;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline;shape-rendering:crispEdges;stop-color:#000000"
+       id="circle13548-6-7"
+       cx="-132.88564"
+       cy="867.6507"
+       r="3.5"
+       transform="translate(-1.2083334e-5)" />
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Bottom Panel Paint Mask"
-     style="display:none"
+     style="display:inline"
      transform="translate(401.72964,-838.44468)">
     <path
        id="rect34050"
@@ -19736,12 +19743,6 @@
        cx="-201.52275"
        cy="908.71692"
        r="7" />
-    <circle
-       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:0;stroke:#ff0000;stroke-width:0.25317;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline;shape-rendering:crispEdges;stop-color:#000000"
-       id="circle13548-6-7"
-       cx="-132.88564"
-       cy="867.6507"
-       r="3.5" />
     <circle
        style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:0;stroke:#ff0000;stroke-width:0.506324;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline;shape-rendering:crispEdges;stop-color:#000000"
        id="circle6454-4"
