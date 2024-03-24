@@ -84,16 +84,17 @@ module inner_switch() {
 
 module bridge() {
 	bridge_width = 2.5;
-	bridge_length = outer_width;
-	h = 3;
+	bridge_length = 12;//outer_width;
+	h = 2.5;
 	translate([outer_width/2, outer_width/2, -h/2]) cube([bridge_length, bridge_width, h], center=true);
 }
 
 module led_holes() {
-	squeeze = -.5;
-	translate([outer_width / 2, outer_width /4 + squeeze])
+	squeeze = 1;//-.5;
+	dist = 3.5;
+	translate([outer_width / 2, outer_width/2-dist])
 	translate([0, 0, 5]) {
-		cube([4, 1.2, 10], center=true);
-		translate([0, outer_width / 2 - squeeze*2, 0]) cube([4, 1.2, 10], center=true);
+		cube([4, 2, 10], center=true);
+		translate([0, dist*2, 0]) cube([4, 2, 10], center=true);
 	}
 }
