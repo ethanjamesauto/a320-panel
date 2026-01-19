@@ -10,22 +10,26 @@ tol_tight = 0.1;
 tol_very_tight = .05;
 epsilon = 1e-4;
 
-button_height = 7+tol_tight;
+button_height = 7+tol_tight + 1; // button seems taller than it actually is (1/17)
 button_width = 7+tol_tight;
 
 // This variable was added to make the button stick out a bit from the chassis, due to problems where
 // the button would rest too far deep in the chassis and not switch when pressed
 //.5; not needed right now, as PCB will cause button to protrude a bit
-button_protrude = 1;// 0; TODO: change
+button_protrude = 2;// 0; TODO: change
 
-switch_size = 14;
+// switch_size = .640*25.4;
+switch_size = .640*25.4 - 2; // FIXME: using this for prototype due to bad 3d printing
+
 switch_base_thickness = 5;
 switch_height = 20;
 lens_thickness = 1;
 
 // radius of switch bumps that help move switch more smoothly
-bump_r = .86;//.82; // .75 gives space of .113 - pretty good but could be tighter, trying 0.82. better, now trying 0.86
-bump_start = 7; // 4mm from the top - was 4 trying 7
+// bump_r = .33;//.82; // .75 gives space of .113 - pretty good but could be tighter, trying 0.82. better, now trying 0.86. very good
+bump_r = .76;  // 0.83 too tight, .70 a bit too lose // FIXME: using this for prototype due to bad 3d printing
+bump_start = 5; // 4mm from the top - was 4 trying 7
+bump_scale = 2;
 
 inner_wall_thickness = 0.9;
 outer_wall_thickness = 0.5;
@@ -37,14 +41,14 @@ echo(str("Lens size: ", lens_size));
 switch_divider_thickness = .5; 
 
 // hole where the pushbutton attaches
-button_mount_height = 3+tol_very_tight;
-button_mount_width = 2+tol_very_tight;
+button_mount_height = 2+tol_very_tight;
+button_mount_width = 3+tol_very_tight;
 button_mount_depth = 3+tol_very_tight;
 
-
-chassis_size = .69*25.4-tol_tight*2; // from old design
-chassis_wall_thickness = 0.8;
-chassis_lip = .75;
+chassis_size_including_lip = .753*25.4;
+chassis_size = chassis_size_including_lip-2; // from old design
+chassis_lip = (chassis_size_including_lip-chassis_size)/2;
+chassis_wall_thickness = 0.6;
 chassis_lip_thickness=2;
 chassis_lip_depth = 0; //0.5;
 chassis_base_thickness = button_height-button_protrude;
@@ -52,16 +56,19 @@ chassis_height = switch_height+button_height+tol_tight; // TODO: auto generate
 
 
 // PCB related parameters
-pcb_thickness = 2.5;
+pcb_thickness = 1.5;
 pcb_mount_width = 3; // the PCB gets smaller as this gets larger
-pcb_mount_height = 3; // more of the PCB is blocked as this gets larger
+pcb_mount_height = 3.2; // more of the PCB is blocked as this gets larger
 pcb_mount_depth = pcb_thickness+tol_tight*2;
-pcb_mount_depth_support = 3; // depth of the support bar
-
+pcb_mount_depth_support = 2; // depth of the support bar
+pcb_height = chassis_size;
+pcb_width = chassis_size-tol_tight*2-pcb_mount_width*2;
+echo(str("PCB width: ", pcb_width, ", PCB height: ", pcb_height));
 
 switch_bevel_r = 0;
 chassis_bevel_r = .5;
 
+// where the switch goes relative to chassis
 switch_offset = chassis_size/2-switch_size/2;
 
 
@@ -75,17 +82,22 @@ led_cutout_width = 4;
 led_cutout_height = 2;
 
 led_cutout_width_chassis = 3;
-led_cutout_height_chassis = .8;
+led_cutout_height_chassis = 1.5;
 
+
+slider_mark_depth = 0.1;
+slider_mark_extra_top = 1;
+slider_mark_extra_bottom = 3;
 
 // halfway between inner wall end and divider start
-led_cutout_location = (inner_wall_thickness+(switch_size/2-switch_divider_thickness/2))/2 - .7;
+led_cutout_location = (inner_wall_thickness+(switch_size/2-switch_divider_thickness/2))/2 - .28;
 led_cutout_location_chassis = led_cutout_location+switch_offset;
 echo(str("LED-switch clearance (x-axis): ", led_cutout_location-inner_wall_thickness));
 
 // preview();
-chassis();
-// switch(fn=40);
+// pcb();
+// chassis();
+switch(fn=40);
 // cube([chassis_size, 2, pcb_thickness]);
 // lens();
 /*
@@ -96,14 +108,44 @@ chassis();
 				 import("tmp_lens_export.svg", dpi=96);
 //*/
 
+// pcb rendering demo
+module pcb() {
+	pcb_start = pcb_mount_width+tol_tight;
+	button_x = chassis_size/2;
+	button_y = chassis_size/2-pcb_start;
+	echo(str("Button x: ", button_x, ", Button y: ", button_y));
 
+	difference() {
+		translate([0, pcb_start, -chassis_height-pcb_thickness-tol_tight])
+			cube([pcb_height, pcb_width, pcb_thickness]);
+		
+		translate([0, pcb_start, 0])
+			translate([button_x, button_y, -50])
+				cylinder(h=100, r=.5, $fn=20);
+		
+		translate([0, pcb_start, 0])
+			translate([led_cutout_location_chassis, button_y, -50])
+				cylinder(h=100, r=.5, $fn=20);
+		echo(str("LED 1 x: ", led_cutout_location_chassis, ", Button y: ", button_y));
+
+		translate([0, pcb_start, 0])
+			translate([chassis_size-led_cutout_location_chassis, button_y, -50])
+				cylinder(h=100, r=.5, $fn=20);
+		echo(str("LED 2 x: ", chassis_size-led_cutout_location_chassis, ", Button y: ", button_y));
+
+	}
+
+}
+
+// lens rendering demo
 module lens() {
 	translate([outer_wall_thickness+tol_tight, outer_wall_thickness+tol_tight, switch_height-lens_thickness]) cube([lens_size, lens_size, lens_thickness]);
 }
 
+// whole assembly rendering demo
 module preview() {
 	translate([0, 0, -chassis_height]) chassis();
-	translate([switch_offset, switch_offset, -switch_height]) switch(fn=20);
+	translate([20+switch_offset, switch_offset, -switch_height]) switch(fn=10);
 }
 
 module chassis() {
@@ -154,6 +196,8 @@ module chassis() {
 			translate([chassis_size-led_cutout_location_chassis, chassis_size/2, chassis_base_thickness/2])
 				cube([led_cutout_height_chassis, led_cutout_width_chassis, chassis_base_thickness], center=true);
 
+			// slider mark
+			translate([chassis_size/2, 0, chassis_height-bump_start-(slider_mark_extra_bottom-slider_mark_extra_top)/2]) cube([1, slider_mark_depth*2, bump_r*2*bump_scale+slider_mark_extra_top+slider_mark_extra_bottom], center=true);
 		}
 	}
 }
@@ -165,7 +209,7 @@ module switch(fn=50) {
 	// switch bumps
 	offset = 4.5;
 	translate([0, 0, switch_height-bump_start]) {
-		scale([1, 1, 2]) difference() {
+		scale([1, 1, bump_scale]) difference() {
 			union() {
 				translate([0, switch_size/2-offset, 0]) sphere(bump_r, $fn=fn);
 				translate([switch_size/2-offset, switch_size, 0]) sphere(bump_r, $fn=fn);
