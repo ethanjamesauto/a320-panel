@@ -4,7 +4,7 @@
 // get measurements down
 // get PCB coordinates
 // make button action smoother by adding some guide mechanism (spheres?)
-
+// decide on chassis lip thickness
 
 tol_tight = 0.1;
 tol_very_tight = .05;
@@ -97,7 +97,13 @@ echo(str("LED-switch clearance (x-axis): ", led_cutout_location-inner_wall_thick
 // preview();
 // pcb();
 // chassis();
-switch(fn=40);
+//translate([10, 0, 0]) translate([0, chassis_size/2, 0]) rotate([0, 0, 180]) translate([0, -chassis_size/2, 0]) top_half();
+rotate([0, -90, 0]) bottom_half();
+// rotate([0, -90, 0]) top_half();
+// translate([-chassis_lip, -chassis_lip, 30]) joiner_ring();
+
+
+// switch(fn=40);
 // cube([chassis_size, 2, pcb_thickness]);
 // lens();
 /*
@@ -107,6 +113,47 @@ switch(fn=40);
 			linear_extrude(lens_thickness*2)
 				 import("tmp_lens_export.svg", dpi=96);
 //*/
+
+lock_z = 1.5;
+lock_y = 1.2;
+lock_w = 2;
+lock_d = 2;
+lock_h = 3;
+
+lock_w1 = 2+tol_tight*2;
+lock_d1 = 2+tol_tight*2;
+lock_h1 = 3+tol_tight*2;
+
+module joiner_ring() {
+	linear_extrude(chassis_lip_thickness)
+		half_fillet_ring(width=chassis_lip-tol_tight, s=chassis_size_including_lip, r=1, fn=50);
+}
+
+module bottom_half() {
+	difference() {
+		half();
+		translate([-lock_w1+epsilon, 0, 0]) {
+			translate([0, lock_y, lock_z]) cube([lock_w1, lock_d1, lock_h1]);
+			translate([0, chassis_size-lock_d1-lock_y, lock_z]) cube([lock_w1, lock_d1, lock_h1]);
+		}
+	}
+}
+
+module top_half() {
+	translate([0, lock_y, lock_z]) cube([lock_w, lock_d, lock_h]);
+	translate([0, chassis_size-lock_d-lock_y, lock_z]) cube([lock_w, lock_d, lock_h]);
+	half();
+}
+
+module half() {
+	difference() {
+		// extra - extra thickness to top and bottom PER WALL , 0.2 too tight
+		translate([-chassis_size/2+tol_tight/2, 0, 0]) chassis(mark=false, extra=0.08);
+		translate([500, 0, 0]) cube([1000, 1000, 1000], center=true);
+		translate([-500-chassis_size/2, 0, 0]) cube([1000, 1000, 1000], center=true);
+
+	}
+}
 
 // pcb rendering demo
 module pcb() {
@@ -148,7 +195,7 @@ module preview() {
 	translate([20+switch_offset, switch_offset, -switch_height]) switch(fn=10);
 }
 
-module chassis() {
+module chassis(mark=true, extra=0) {
 	
 	// pcb mount
 	translate([0, 0, -pcb_mount_depth])
@@ -181,9 +228,10 @@ module chassis() {
 		
 		union() {
 			// main chassis hole
-			translate([chassis_wall_thickness, chassis_wall_thickness, chassis_base_thickness]) 
+			translate([chassis_wall_thickness+extra, chassis_wall_thickness, chassis_base_thickness]) 
 				linear_extrude(chassis_height-chassis_base_thickness) 
-					square(chassis_size-chassis_wall_thickness*2);
+					square([chassis_size-chassis_wall_thickness*2-extra*2, 
+						chassis_size-chassis_wall_thickness*2]);
 			
 			// button cutout
 			translate([chassis_size/2, chassis_size/2, (chassis_base_thickness)/2])
@@ -197,7 +245,8 @@ module chassis() {
 				cube([led_cutout_height_chassis, led_cutout_width_chassis, chassis_base_thickness], center=true);
 
 			// slider mark
-			translate([chassis_size/2, 0, chassis_height-bump_start-(slider_mark_extra_bottom-slider_mark_extra_top)/2]) cube([1, slider_mark_depth*2, bump_r*2*bump_scale+slider_mark_extra_top+slider_mark_extra_bottom], center=true);
+			if (mark) translate([chassis_size/2, 0, chassis_height-bump_start-(slider_mark_extra_bottom-slider_mark_extra_top)/2]) 
+				cube([1, slider_mark_depth*2, bump_r*2*bump_scale+slider_mark_extra_top+slider_mark_extra_bottom], center=true);
 		}
 	}
 }
