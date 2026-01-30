@@ -6,6 +6,9 @@
 // make button action smoother by adding some guide mechanism (spheres?)
 // decide on chassis lip thickness
 
+top_piece_height = 0.75;
+
+tol_very_loose = 0.3;
 tol_tight = 0.1;
 tol_very_tight = .05;
 epsilon = 1e-4;
@@ -21,8 +24,9 @@ button_protrude = 2;// 0; TODO: change
 // switch_size = .640*25.4;
 switch_size = .640*25.4 - 2; // FIXME: using this for prototype due to bad 3d printing
 
-switch_base_thickness = 5;
-switch_height = 20;
+switch_base_thickness = 4.2; // was 5, changed to 4.2 to give more room for LEDs
+switch_height_before_extra = 20;
+switch_height = switch_height_before_extra+top_piece_height+tol_tight;
 lens_thickness = 1;
 
 // radius of switch bumps that help move switch more smoothly
@@ -49,15 +53,19 @@ chassis_size_including_lip = .753*25.4;
 chassis_size = chassis_size_including_lip-2; // from old design
 chassis_lip = (chassis_size_including_lip-chassis_size)/2;
 chassis_wall_thickness = 0.6;
-chassis_lip_thickness=2;
+chassis_lip_thickness=1;
+chassis_lip_start = 1;
 chassis_lip_depth = 0; //0.5;
 chassis_base_thickness = button_height-button_protrude;
-chassis_height = switch_height+button_height+tol_tight; // TODO: auto generate
+chassis_height = switch_height_before_extra+button_height+tol_tight; // TODO: auto generate
 
+echo(str("chassis size including lip: ", chassis_size_including_lip));
+echo(str("inkscape chassis size: ", chassis_size_including_lip+tol_very_loose*2));
+echo(str("inkscape chassis cutout size: ", chassis_size+tol_very_loose*2));
 
 // PCB related parameters
 pcb_thickness = 1.5;
-pcb_mount_width = 3; // the PCB gets smaller as this gets larger
+pcb_mount_width = 3-.3; // the PCB gets smaller as this gets larger
 pcb_mount_height = 3.2; // more of the PCB is blocked as this gets larger
 pcb_mount_depth = pcb_thickness+tol_tight*2;
 pcb_mount_depth_support = 2; // depth of the support bar
@@ -66,7 +74,7 @@ pcb_width = chassis_size-tol_tight*2-pcb_mount_width*2;
 echo(str("PCB width: ", pcb_width, ", PCB height: ", pcb_height));
 
 switch_bevel_r = 0;
-chassis_bevel_r = .5;
+chassis_bevel_r = 1;
 
 // where the switch goes relative to chassis
 switch_offset = chassis_size/2-switch_size/2;
@@ -94,15 +102,21 @@ led_cutout_location = (inner_wall_thickness+(switch_size/2-switch_divider_thickn
 led_cutout_location_chassis = led_cutout_location+switch_offset;
 echo(str("LED-switch clearance (x-axis): ", led_cutout_location-inner_wall_thickness));
 
-// preview();
+
+
+// top_half();
+// preview2();
 // pcb();
 // chassis();
 //translate([10, 0, 0]) translate([0, chassis_size/2, 0]) rotate([0, 0, 180]) translate([0, -chassis_size/2, 0]) top_half();
-rotate([0, -90, 0]) bottom_half();
+// rotate([0, -90, 0]) bottom_half();
 // rotate([0, -90, 0]) top_half();
-// translate([-chassis_lip, -chassis_lip, 30]) joiner_ring();
-
-
+// joiner_ring();
+// rotate([180, 0, 0]) top_ring();
+//top_cutout();
+//glow_ring(h=5);
+// translate([-chassis_size/2, -chassis_size/2, 0]) chassis();
+// top_cutout();
 // switch(fn=40);
 // cube([chassis_size, 2, pcb_thickness]);
 // lens();
@@ -113,6 +127,8 @@ rotate([0, -90, 0]) bottom_half();
 			linear_extrude(lens_thickness*2)
 				 import("tmp_lens_export.svg", dpi=96);
 //*/
+ // top_cutout();
+// bottom_cutout();
 
 lock_z = 1.5;
 lock_y = 1.2;
@@ -124,8 +140,48 @@ lock_w1 = 2+tol_tight*2;
 lock_d1 = 2+tol_tight*2;
 lock_h1 = 3+tol_tight*2;
 
-module joiner_ring() {
-	linear_extrude(chassis_lip_thickness)
+glow_ring_width = 0.5;
+spacing=1.2;
+
+module glow_ring(spacing=spacing, h) {
+	size = chassis_size_including_lip+spacing*2-tol_tight*2;
+	translate([-size/2, -size/2, 0]) linear_extrude(h)
+		fillet_ring(s=size, width=glow_ring_width, r=chassis_bevel_r+spacing-tol_tight);
+}
+
+module top_cutout(spacing=spacing) {
+	size = chassis_size_including_lip+spacing*2;
+	echo(str("Chassis switch cutout size: ", size));
+	translate([-size/2, -size/2, 0])
+		fillet_square(s=size, r=chassis_bevel_r+spacing);
+}
+
+module bottom_cutout(tol=0.3) {
+	square(chassis_size+tol*2, center=true);
+}
+
+module preview2() {
+	translate([0, -chassis_size/2, -chassis_height+chassis_lip_start+chassis_lip_thickness]) {
+		translate([-tol_tight/2, 0, 0]) bottom_half();
+		translate([tol_tight/2, 0, 0]) translate([0, chassis_size/2, 0]) 
+			rotate([0, 0, 180]) translate([0, -chassis_size/2, 0]) top_half();
+		
+		translate([-chassis_size/2-chassis_lip, -chassis_lip, chassis_height-10]) joiner_ring();
+		translate([-chassis_size/2-chassis_lip, -chassis_lip, chassis_height-chassis_lip_start+tol_tight]) top_ring();
+
+		translate([-switch_size/2, switch_offset, -switch_height+chassis_height+top_piece_height+tol_tight]) switch(fn=10);
+	}
+}
+
+module top_ring() {
+	joiner_ring(h=chassis_lip_start-tol_tight+tol_tight);
+	translate([0, 0, chassis_lip_start])
+	linear_extrude(top_piece_height)
+		half_fillet_ring(width=chassis_lip+chassis_wall_thickness, s=chassis_size_including_lip, r=1, fn=50);
+}
+
+module joiner_ring(h=2) {
+	linear_extrude(h)
 		half_fillet_ring(width=chassis_lip-tol_tight, s=chassis_size_including_lip, r=1, fn=50);
 }
 
@@ -148,9 +204,13 @@ module top_half() {
 module half() {
 	difference() {
 		// extra - extra thickness to top and bottom PER WALL , 0.2 too tight
-		translate([-chassis_size/2+tol_tight/2, 0, 0]) chassis(mark=false, extra=0.08);
+		// was .08, changing to .13
+		translate([tol_tight/2, 0, 0]) difference() {
+			translate([-chassis_size/2, 0, 0]) chassis(mark=false, extra=0.13, lip_pos=chassis_lip_start); 
+			translate([-500-chassis_size/2, 0, 0]) cube([1000, 1000, 1000], center=true);
+		}
 		translate([500, 0, 0]) cube([1000, 1000, 1000], center=true);
-		translate([-500-chassis_size/2, 0, 0]) cube([1000, 1000, 1000], center=true);
+		
 
 	}
 }
@@ -195,7 +255,7 @@ module preview() {
 	translate([20+switch_offset, switch_offset, -switch_height]) switch(fn=10);
 }
 
-module chassis(mark=true, extra=0) {
+module chassis(mark=true, extra=0, lip_pos=0) {
 	
 	// pcb mount
 	translate([0, 0, -pcb_mount_depth])
@@ -215,8 +275,8 @@ module chassis(mark=true, extra=0) {
 	
 	
 	// lip
-	translate([-chassis_lip, -chassis_lip, chassis_height-chassis_lip_depth-chassis_lip_thickness])
-		linear_extrude(chassis_lip_thickness) half_fillet_ring(width=chassis_lip, s=chassis_size+chassis_lip*2);
+	translate([-chassis_lip, -chassis_lip, chassis_height-chassis_lip_depth-chassis_lip_thickness-lip_pos])
+		linear_extrude(chassis_lip_thickness) half_fillet_ring(width=chassis_lip, s=chassis_size+chassis_lip*2, r = chassis_bevel_r);
 	
 	// main chassis
 	difference() {
